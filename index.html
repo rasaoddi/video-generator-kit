@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8" />
+  <title>تولید ویدیو</title>
+</head>
+<body>
+
+  <h2>ثبت‌نام</h2>
+  <form id="signup-form">
+    <input type="email" id="signup-email" placeholder="ایمیل" required />
+    <input type="password" id="signup-password" placeholder="رمز عبور" required />
+    <button type="submit">ثبت‌نام</button>
+  </form>
+
+  <h2>ورود</h2>
+  <form id="login-form">
+    <input type="email" id="login-email" placeholder="ایمیل" required />
+    <input type="password" id="login-password" placeholder="رمز عبور" required />
+    <button type="submit">ورود</button>
+  </form>
+
+  <div id="video-section" style="display:none;">
+    <p>اعتبار شما: <span id="credit-display">--</span></p>
+    <button id="generate-btn">🎬 تولید ویدیو</button>
+    <button onclick="firebase.auth().signOut()">خروج</button>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- فایل اصلی برنامه -->
+  <script src="app.js"></script>
+</body>
+</html>
