@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!predictionId) throw new Error("لینک دریافت ویدیو پیدا نشد");
 
       let finalUrl = null;
-      for (let i = 0; i < 60; i++) {
+      for (let i = 0; i < 100; i++) {
         const poll = await fetch(`https://available-valiant-cloche.glitch.me/poll/${predictionId}`);
         const pollData = await poll.json();
         if (pollData.status === "succeeded") {
