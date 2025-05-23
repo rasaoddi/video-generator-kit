@@ -1,46 +1,41 @@
+
 <!DOCTYPE html>
 <html lang="fa">
 <head>
   <meta charset="UTF-8" />
-  <title>سایت ویدیو با اعتبار</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>تولید ویدیو</title>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
 </head>
-<body>
+<body style="direction: rtl; font-family: sans-serif;">
   <h2>ثبت‌نام</h2>
   <form id="signup-form">
-    <input type="email" id="signup-email" placeholder="ایمیل" />
-    <input type="password" id="signup-password" placeholder="رمز عبور" />
+    <input id="signup-email" type="email" placeholder="ایمیل">
+    <input id="signup-password" type="password" placeholder="رمز عبور">
     <button type="submit">عضویت</button>
   </form>
 
   <h2>ورود</h2>
   <form id="login-form">
-    <input type="email" id="login-email" placeholder="ایمیل" />
-    <input type="password" id="login-password" placeholder="رمز عبور" />
+    <input id="login-email" type="email" placeholder="ایمیل">
+    <input id="login-password" type="password" placeholder="رمز عبور">
     <button type="submit">ورود</button>
   </form>
 
-  <p>اعتبار شما: <span id="credit-display">--</span></p>
-  <button id="logout-btn">خروج</button>
-
   <div id="video-section" style="display:none;">
+    <p>اعتبار شما: <span id="credit-display">--</span></p>
     <input id="image-url" placeholder="لینک تصویر" />
-    <input id="duration" type="number" placeholder="مدت (ثانیه)" />
-    <input id="prompt" placeholder="پرامپت" />
+    <input id="duration" placeholder="مدت" type="number" value="5" />
+    <input id="prompt" placeholder="پرامپت" value="a woman" />
     <button id="generate-btn">تولید ویدیو</button>
-    <br />
-    <video id="video-preview" controls style="display:none; width:400px;"></video>
+    <br><br>
+    <video id="video-preview" controls style="display:none; max-width:100%;"></video>
+    <br>
+    <button id="logout-btn">خروج</button>
   </div>
 
-  <!-- این همون کدی هست که دادی، به‌جای src="app.js" مستقیم اینجا قراره -->
-  <script>
-    // 🔻 اینجا همون کدی که دادی قرار می‌گیره:
-    document.addEventListener("DOMContentLoaded", () => {
-      // 🔹 کل app.js اینجا باشه (همون کدی که دادی)
-      // (برای کوتاهی، تکرار نکردم چون خودت بالا فرستادی و درسته)
-    });
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
