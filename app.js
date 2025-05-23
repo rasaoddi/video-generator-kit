@@ -1,12 +1,12 @@
 // پیکربندی جدید Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyCPRo2OKnGqEaRl1KBEJxHMJ_sEOBXoF8",
+  apiKey: "AIzaSyCPRo2OkGNqEaIR1KB5exJhM3_e5OBXoF8",
   authDomain: "videogenerator-274eb.firebaseapp.com",
   projectId: "videogenerator-274eb",
-  storageBucket: "videogenerator-274eb.appspot.com",
+  storageBucket: "videogenerator-274eb.firebasestorage.app",
   messagingSenderId: "841757070475",
-  appId: "1:841757070475:web:c84b8aa3f01e93fc8b88be",
-  measurementId: "G-8PGD1PJ3RJ"
+  appId: "1:841757070475:web:c48b0aa3f019e3fc08b08e",
+  measurementId: "G-8QGPD13RJH"
 };
 
 // مقداردهی Firebase
