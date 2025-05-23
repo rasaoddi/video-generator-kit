@@ -9,14 +9,11 @@ const firebaseConfig = {
   measurementId: "G-8QGPD13RJH"
 };
 
-// مقداردهی Firebase
 firebase.initializeApp(firebaseConfig);
 
-// سرویس‌های موردنیاز
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// انتخاب عناصر صفحه
 const signupForm = document.getElementById("signup-form");
 const loginForm = document.getElementById("login-form");
 const creditDisplay = document.getElementById("credit-display");
@@ -54,11 +51,21 @@ loginForm.addEventListener("submit", async (e) => {
   }
 });
 
-// مشاهده وضعیت ورود/خروج
+// بررسی وضعیت ورود و ایجاد اعتبار اولیه در صورت نبود سند
 auth.onAuthStateChanged(async (user) => {
   if (user) {
-    const doc = await db.collection("users").doc(user.uid).get();
-    const credit = doc.exists ? doc.data().credit : 0;
+    const ref = db.collection("users").doc(user.uid);
+    const doc = await ref.get();
+
+    let credit = 0;
+
+    if (!doc.exists) {
+      await ref.set({ email: user.email, credit: 1000 });
+      credit = 1000;
+    } else {
+      credit = doc.data().credit || 0;
+    }
+
     creditDisplay.textContent = credit;
     videoSection.style.display = "block";
     signupForm.style.display = "none";
