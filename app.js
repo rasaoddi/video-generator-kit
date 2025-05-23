@@ -1,11 +1,12 @@
-// کانفیگ شما
+// پیکربندی Firebase از داشبورد
 const firebaseConfig = {
   apiKey: "AIzaSyCPRo2OKnGqEaRl1KBEJxHMJ_sEOBXoF8",
   authDomain: "videogenerator-274eb.firebaseapp.com",
   projectId: "videogenerator-274eb",
   storageBucket: "videogenerator-274eb.appspot.com",
   messagingSenderId: "841757070475",
-  appId: "1:841757070475:web:f248c1bf0544a978b80e0e",
+  appId: "1:841757070475:web:fe248c1bf0544a978b80e0e",
+  measurementId: "G-RN4GL1NN1N"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -24,12 +25,17 @@ signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("signup-email").value;
   const password = document.getElementById("signup-password").value;
-  const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-  await db.collection("users").doc(userCredential.user.uid).set({
-    email,
-    credit: 1000,
-  });
-  alert("ثبت‌نام با موفقیت انجام شد.");
+  try {
+    const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+    await db.collection("users").doc(userCredential.user.uid).set({
+      email,
+      credit: 1000,
+    });
+    alert("ثبت‌نام موفق!");
+  } catch (err) {
+    alert("خطا در ثبت‌نام: " + err.message);
+    console.error(err);
+  }
 });
 
 // ورود
@@ -37,10 +43,15 @@ loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("login-email").value;
   const password = document.getElementById("login-password").value;
-  await auth.signInWithEmailAndPassword(email, password);
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+  } catch (err) {
+    alert("خطا در ورود: " + err.message);
+    console.error(err);
+  }
 });
 
-// وضعیت ورود
+// تغییر وضعیت ورود
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     const doc = await db.collection("users").doc(user.uid).get();
@@ -58,7 +69,7 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// دکمه تولید ویدیو
+// تولید ویدیو (کسر اعتبار تستی)
 generateBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
   const ref = db.collection("users").doc(user.uid);
@@ -70,5 +81,5 @@ generateBtn.addEventListener("click", async () => {
   }
   await ref.update({ credit: credit - 50 });
   creditDisplay.textContent = credit - 50;
-  alert("درخواست تولید ویدیو ثبت شد! (API هنوز متصل نشده)");
+  alert("درخواست تولید ویدیو ثبت شد (تست)");
 });
