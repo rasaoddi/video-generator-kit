@@ -1,4 +1,6 @@
-// Firebase config
+// app.js
+
+// پیکربندی Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCPRo2OkGNqEaIR1KB5exJhM3_e5OBXoF8",
   authDomain: "videogenerator-274eb.firebaseapp.com",
@@ -13,30 +15,30 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// المان‌ها
 const signupForm = document.getElementById("signup-form");
 const loginForm = document.getElementById("login-form");
 const creditDisplay = document.getElementById("credit-display");
 const videoSection = document.getElementById("video-section");
 const generateBtn = document.getElementById("generate-btn");
-const result = document.getElementById("result");
-const videoPlayer = document.getElementById("video-player");
+const logoutBtn = document.getElementById("logout-btn");
+const videoPreview = document.getElementById("video-preview");
 
+// ثبت‌نام
 signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("signup-email").value;
   const password = document.getElementById("signup-password").value;
   try {
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-    await db.collection("users").doc(userCredential.user.uid).set({
-      email,
-      credit: 1000
-    });
-    alert("ثبت‌نام موفق!");
+    await db.collection("users").doc(userCredential.user.uid).set({ email, credit: 1000 });
+    alert("ثبت‌نام با موفقیت انجام شد!");
   } catch (err) {
-    alert("❌ ثبت‌نام ناموفق: " + err.message);
+    alert("❌ خطا در ثبت‌نام: " + err.message);
   }
 });
 
+// ورود
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("login-email").value;
@@ -44,10 +46,16 @@ loginForm.addEventListener("submit", async (e) => {
   try {
     await auth.signInWithEmailAndPassword(email, password);
   } catch (err) {
-    alert("❌ ورود ناموفق: " + err.message);
+    alert("❌ خطا در ورود: " + err.message);
   }
 });
 
+// خروج
+logoutBtn.addEventListener("click", async () => {
+  await auth.signOut();
+});
+
+// بررسی وضعیت ورود
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     const doc = await db.collection("users").doc(user.uid).get();
@@ -64,85 +72,77 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
+// تولید ویدیو
 generateBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
-  const uid = user.uid;
+  if (!user) return;
+
   const imageUrl = document.getElementById("image-url").value;
   const prompt = document.getElementById("prompt").value;
-  const duration = parseInt(document.getElementById("duration").value) || 5;
-
-  if (!imageUrl || !prompt) {
-    alert("لینک تصویر و پرامپت را وارد کنید.");
-    return;
-  }
-
-  const ref = db.collection("users").doc(uid);
+  const duration = parseInt(document.getElementById("duration").value || "5");
+  const ref = db.collection("users").doc(user.uid);
   const doc = await ref.get();
   let credit = doc.data().credit;
 
   if (credit < 50) {
-    alert("❌ اعتبار کافی نیست.");
+    alert("❌ اعتبار کافی نیست!");
     return;
   }
 
   generateBtn.disabled = true;
-  result.textContent = "⏳ در حال تولید ویدیو...";
+  generateBtn.textContent = "در حال تولید...";
 
   try {
-    const response = await axios.post(
-      "https://api.replicate.com/v1/predictions",
-      {
-        version: "f5ed12a2-df0d-41a3-a3f2-c7a9c6e9b648", // kling 1.6
+    const response = await fetch("https://api.replicate.com/v1/predictions", {
+      method: "POST",
+      headers: {
+        "Authorization": "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO",
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        version: "1f72fd3e50d2fded97b94ef34d79e7fe2d0cf8c1a6f7d8d4d618f6c4d41d4043",
         input: {
           prompt,
           start_image: imageUrl,
+          cfg_scale: 0.5,
           duration,
-          aspect_ratio: "16:9",
-          cfg_scale: 0.5
+          aspect_ratio: "16:9"
         }
-      },
-      {
-        headers: {
-          Authorization: "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO",
-          "Content-Type": "application/json"
-        }
-      }
-    );
+      })
+    });
 
-    const getUrl = response.data.urls.get;
-    let final = null;
+    const result = await response.json();
+    const getUrl = result?.urls?.get;
+    if (!getUrl) throw new Error("لینک دریافت ویدیو پیدا نشد");
 
-    // Polling until video is ready
-    for (let i = 0; i < 30; i++) {
-      const poll = await axios.get(getUrl, {
-        headers: {
-          Authorization: "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO"
-        }
+    // منتظر آماده شدن
+    let finalUrl = null;
+    for (let i = 0; i < 60; i++) {
+      const poll = await fetch(getUrl, {
+        headers: { Authorization: "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO" }
       });
-      if (poll.data.status === "succeeded") {
-        final = poll.data.output;
+      const pollData = await poll.json();
+      if (pollData.status === "succeeded") {
+        finalUrl = pollData.output;
         break;
       }
-      await new Promise(res => setTimeout(res, 5000));
+      await new Promise(res => setTimeout(res, 3000));
     }
 
-    if (final) {
+    if (finalUrl) {
       await ref.update({ credit: credit - 50 });
       creditDisplay.textContent = credit - 50;
-      result.textContent = "✅ ویدیو تولید شد!";
-      videoPlayer.src = final;
-      videoPlayer.style.display = "block";
+      videoPreview.src = finalUrl;
+      videoPreview.style.display = "block";
+      alert("✅ ویدیو آماده است!");
     } else {
-      result.textContent = "❌ ویدیو تولید نشد. لطفاً دوباره تلاش کنید.";
+      alert("⏳ تولید ویدیو بیش از حد طول کشید یا با خطا مواجه شد.");
     }
+
   } catch (err) {
-    console.error(err);
-    result.textContent = "❌ خطا در تولید ویدیو.";
+    alert("❌ خطا در تولید ویدیو: " + err.message);
   }
 
   generateBtn.disabled = false;
+  generateBtn.textContent = "تولید ویدیو";
 });
-
-function logout() {
-  auth.signOut();
-}
