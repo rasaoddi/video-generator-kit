@@ -3,46 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <title>تولید ویدیو</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
   <style>
-    body { font-family: sans-serif; direction: rtl; padding: 20px; }
-    #video-section { display: none; margin-top: 20px; }
-    input { margin: 5px; }
+    body { font-family: sans-serif; direction: rtl; padding: 20px; background: #f4f4f4; }
+    input, button { margin: 5px; padding: 5px; }
+    video { width: 100%; max-width: 500px; margin-top: 20px; display: none; }
   </style>
 </head>
 <body>
-
   <h3>ثبت‌نام</h3>
   <form id="signup-form">
-    <input type="email" id="signup-email" placeholder="ایمیل" required>
-    <input type="password" id="signup-password" placeholder="رمز عبور" required>
+    <input id="signup-email" type="email" placeholder="ایمیل" required />
+    <input id="signup-password" type="password" placeholder="رمز عبور" required />
     <button type="submit">ثبت‌نام</button>
   </form>
 
   <h3>ورود</h3>
   <form id="login-form">
-    <input type="email" id="login-email" placeholder="ایمیل" required>
-    <input type="password" id="login-password" placeholder="رمز عبور" required>
+    <input id="login-email" type="email" placeholder="ایمیل" required />
+    <input id="login-password" type="password" placeholder="رمز عبور" required />
     <button type="submit">ورود</button>
   </form>
 
-  <div id="video-section">
+  <div id="video-section" style="display:none;">
     <p>اعتبار شما: <span id="credit-display">--</span></p>
-    <input type="text" id="image-url" placeholder="لینک عکس" size="50">
-    <input type="text" id="prompt" placeholder="پرامپت متن" size="40">
-    <input type="number" id="duration" placeholder="زمان (ثانیه)" min="1" value="5">
+    <input id="image-url" type="text" placeholder="لینک تصویر (jpeg/png)" style="width:300px" />
+    <input id="prompt" type="text" placeholder="پرامپت" style="width:200px" />
+    <input id="duration" type="number" min="1" max="10" placeholder="زمان (ثانیه)" />
     <button id="generate-btn">تولید ویدیو</button>
-    <br><br>
-    <video id="video-preview" controls style="max-width: 100%; display:none;"></video>
-    <br>
     <button id="logout-btn">خروج</button>
+    <video id="video-preview" controls autoplay loop></video>
   </div>
 
-  <!-- Firebase Compat -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-
-  <!-- فایل اصلی JS -->
   <script src="app.js"></script>
 </body>
 </html>
