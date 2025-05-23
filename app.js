@@ -120,4 +120,21 @@ document.addEventListener("DOMContentLoaded", () => {
         await new Promise(res => setTimeout(res, 3000));
       }
 
-      if (fin
+      if (finalUrl) {
+        await ref.update({ credit: credit - 50 });
+        creditDisplay.textContent = credit - 50;
+        videoPreview.src = finalUrl;
+        videoPreview.style.display = "block";
+        alert("✅ ویدیو آماده شد!");
+      } else {
+        alert("⏳ تولید ویدیو بیش از حد طول کشید یا با خطا مواجه شد.");
+      }
+    } catch (err) {
+      alert("❌ خطا در تولید ویدیو: " + err.message);
+    }
+
+    generateBtn.disabled = false;
+    generateBtn.textContent = "تولید ویدیو";
+  });
+});
+</script>
