@@ -1,6 +1,3 @@
-// app.js
-
-// پیکربندی Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCPRo2OkGNqEaIR1KB5exJhM3_e5OBXoF8",
   authDomain: "videogenerator-274eb.firebaseapp.com",
@@ -15,7 +12,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// المان‌ها
 const signupForm = document.getElementById("signup-form");
 const loginForm = document.getElementById("login-form");
 const creditDisplay = document.getElementById("credit-display");
@@ -24,7 +20,6 @@ const generateBtn = document.getElementById("generate-btn");
 const logoutBtn = document.getElementById("logout-btn");
 const videoPreview = document.getElementById("video-preview");
 
-// ثبت‌نام
 signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("signup-email").value;
@@ -38,7 +33,6 @@ signupForm.addEventListener("submit", async (e) => {
   }
 });
 
-// ورود
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   const email = document.getElementById("login-email").value;
@@ -50,12 +44,10 @@ loginForm.addEventListener("submit", async (e) => {
   }
 });
 
-// خروج
 logoutBtn.addEventListener("click", async () => {
   await auth.signOut();
 });
 
-// بررسی وضعیت ورود
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     const doc = await db.collection("users").doc(user.uid).get();
@@ -72,14 +64,19 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// تولید ویدیو
 generateBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
   if (!user) return;
 
-  const imageUrl = document.getElementById("image-url").value;
-  const prompt = document.getElementById("prompt").value;
+  const imageUrl = document.getElementById("image-url").value.trim();
+  const prompt = document.getElementById("prompt").value.trim();
   const duration = parseInt(document.getElementById("duration").value || "5");
+
+  if (!imageUrl.startsWith("http")) {
+    alert("❌ لینک تصویر باید با http شروع شود.");
+    return;
+  }
+
   const ref = db.collection("users").doc(user.uid);
   const doc = await ref.get();
   let credit = doc.data().credit;
@@ -96,11 +93,7 @@ generateBtn.addEventListener("click", async () => {
     const response = await fetch("https://available-valiant-cloche.glitch.me/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        prompt,
-        start_image: imageUrl,
-        duration
-      })
+      body: JSON.stringify({ prompt, start_image: imageUrl, duration })
     });
 
     const result = await response.json();
@@ -110,16 +103,11 @@ generateBtn.addEventListener("click", async () => {
     let finalUrl = null;
     for (let i = 0; i < 60; i++) {
       const poll = await fetch(getUrl, {
-        headers: {
-          Authorization: "Token r8_2ciOwWQIiBX3aPJCw3Hcxoz517qjea6395mAB"
-        }
+        headers: { Authorization: "Token " + result.token }
       });
       const pollData = await poll.json();
-      if (pollData.status === "succeeded" && pollData.output) {
+      if (pollData.status === "succeeded") {
         finalUrl = pollData.output;
-        break;
-      } else if (pollData.status === "failed") {
-        alert("❌ پردازش شکست خورد.");
         break;
       }
       await new Promise(res => setTimeout(res, 3000));
@@ -132,7 +120,7 @@ generateBtn.addEventListener("click", async () => {
       videoPreview.style.display = "block";
       alert("✅ ویدیو آماده است!");
     } else {
-      alert("⏳ تولید ویدیو بیش از حد طول کشید یا با خطا مواجه شد.");
+      alert("⏳ تولید ویدیو بیش از حد طول کشید.");
     }
 
   } catch (err) {
