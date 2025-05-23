@@ -93,52 +93,29 @@ generateBtn.addEventListener("click", async () => {
   generateBtn.textContent = "در حال تولید...";
 
   try {
-    const response = await fetch("https://api.replicate.com/v1/predictions", {
+    const response = await fetch("https://available-valiant-cloche.glitch.me/generate", {
       method: "POST",
       headers: {
-        "Authorization": "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO",
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        version: "1f72fd3e50d2fded97b94ef34d79e7fe2d0cf8c1a6f7d8d4d618f6c4d41d4043",
-        input: {
-          prompt,
-          start_image: imageUrl,
-          cfg_scale: 0.5,
-          duration,
-          aspect_ratio: "16:9"
-        }
+        prompt,
+        start_image: imageUrl,
+        duration
       })
     });
 
     const result = await response.json();
-    const getUrl = result?.urls?.get;
-    if (!getUrl) throw new Error("لینک دریافت ویدیو پیدا نشد");
 
-    // منتظر آماده شدن
-    let finalUrl = null;
-    for (let i = 0; i < 60; i++) {
-      const poll = await fetch(getUrl, {
-        headers: { Authorization: "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO" }
-      });
-      const pollData = await poll.json();
-      if (pollData.status === "succeeded") {
-        finalUrl = pollData.output;
-        break;
-      }
-      await new Promise(res => setTimeout(res, 3000));
-    }
-
-    if (finalUrl) {
+    if (result?.video) {
       await ref.update({ credit: credit - 50 });
       creditDisplay.textContent = credit - 50;
-      videoPreview.src = finalUrl;
+      videoPreview.src = result.video;
       videoPreview.style.display = "block";
       alert("✅ ویدیو آماده است!");
     } else {
-      alert("⏳ تولید ویدیو بیش از حد طول کشید یا با خطا مواجه شد.");
+      throw new Error("لینک ویدیو دریافت نشد");
     }
-
   } catch (err) {
     alert("❌ خطا در تولید ویدیو: " + err.message);
   }
