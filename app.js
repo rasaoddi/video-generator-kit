@@ -1,19 +1,22 @@
-// پیکربندی Firebase از داشبورد
+// پیکربندی جدید Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCPRo2OKnGqEaRl1KBEJxHMJ_sEOBXoF8",
   authDomain: "videogenerator-274eb.firebaseapp.com",
   projectId: "videogenerator-274eb",
   storageBucket: "videogenerator-274eb.appspot.com",
   messagingSenderId: "841757070475",
-  appId: "1:841757070475:web:fe248c1bf0544a978b80e0e",
-  measurementId: "G-RN4GL1NN1N"
+  appId: "1:841757070475:web:c84b8aa3f01e93fc8b88be",
+  measurementId: "G-8PGD1PJ3RJ"
 };
 
+// مقداردهی Firebase
 firebase.initializeApp(firebaseConfig);
 
+// سرویس‌های موردنیاز
 const auth = firebase.auth();
 const db = firebase.firestore();
 
+// انتخاب عناصر صفحه
 const signupForm = document.getElementById("signup-form");
 const loginForm = document.getElementById("login-form");
 const creditDisplay = document.getElementById("credit-display");
@@ -29,11 +32,11 @@ signupForm.addEventListener("submit", async (e) => {
     const userCredential = await auth.createUserWithEmailAndPassword(email, password);
     await db.collection("users").doc(userCredential.user.uid).set({
       email,
-      credit: 1000,
+      credit: 1000
     });
-    alert("ثبت‌نام موفق!");
+    alert("ثبت‌نام با موفقیت انجام شد!");
   } catch (err) {
-    alert("خطا در ثبت‌نام: " + err.message);
+    alert("❌ خطا در ثبت‌نام: " + err.message);
     console.error(err);
   }
 });
@@ -46,16 +49,16 @@ loginForm.addEventListener("submit", async (e) => {
   try {
     await auth.signInWithEmailAndPassword(email, password);
   } catch (err) {
-    alert("خطا در ورود: " + err.message);
+    alert("❌ خطا در ورود: " + err.message);
     console.error(err);
   }
 });
 
-// تغییر وضعیت ورود
+// مشاهده وضعیت ورود/خروج
 auth.onAuthStateChanged(async (user) => {
   if (user) {
     const doc = await db.collection("users").doc(user.uid).get();
-    const credit = doc.data().credit;
+    const credit = doc.exists ? doc.data().credit : 0;
     creditDisplay.textContent = credit;
     videoSection.style.display = "block";
     signupForm.style.display = "none";
@@ -69,17 +72,17 @@ auth.onAuthStateChanged(async (user) => {
   }
 });
 
-// تولید ویدیو (کسر اعتبار تستی)
+// تولید ویدیو (فعلاً فقط کم کردن اعتبار)
 generateBtn.addEventListener("click", async () => {
   const user = auth.currentUser;
   const ref = db.collection("users").doc(user.uid);
   const doc = await ref.get();
   let credit = doc.data().credit;
   if (credit < 50) {
-    alert("اعتبار کافی نیست");
+    alert("❌ اعتبار کافی نیست!");
     return;
   }
   await ref.update({ credit: credit - 50 });
   creditDisplay.textContent = credit - 50;
-  alert("درخواست تولید ویدیو ثبت شد (تست)");
+  alert("✅ درخواست تولید ویدیو ثبت شد! (فعلاً تست)");
 });
