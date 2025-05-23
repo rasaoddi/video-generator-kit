@@ -1,5 +1,4 @@
-<!-- این فایل باید در کنار index.html باشد یا در داخل تگ <script> نوشته شود -->
-<script>
+
 document.addEventListener("DOMContentLoaded", () => {
   const signupForm = document.getElementById("signup-form");
   const loginForm = document.getElementById("login-form");
@@ -23,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // ثبت‌نام
   signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("signup-email").value;
@@ -37,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // ورود
   loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("login-email").value;
@@ -49,12 +46,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // خروج
   logoutBtn.addEventListener("click", async () => {
     await auth.signOut();
   });
 
-  // بررسی وضعیت ورود
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       const doc = await db.collection("users").doc(user.uid).get();
@@ -71,7 +66,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // تولید ویدیو
   generateBtn.addEventListener("click", async () => {
     const user = auth.currentUser;
     if (!user) return;
@@ -108,7 +102,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!predictionId) throw new Error("لینک دریافت ویدیو پیدا نشد");
 
-      // منتظر آماده شدن
       let finalUrl = null;
       for (let i = 0; i < 60; i++) {
         const poll = await fetch(`https://available-valiant-cloche.glitch.me/poll/${predictionId}`);
@@ -137,4 +130,3 @@ document.addEventListener("DOMContentLoaded", () => {
     generateBtn.textContent = "تولید ویدیو";
   });
 });
-</script>
