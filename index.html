@@ -1,37 +1,167 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8" />
-  <title>تولید ویدیو</title>
+  <meta charset="UTF-8">
+  <title>تولید ویدیو با اشتراک</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
   <h2>ثبت‌نام</h2>
   <form id="signup-form">
-    <input type="email" id="signup-email" placeholder="ایمیل" required />
-    <input type="password" id="signup-password" placeholder="رمز عبور" required />
+    <input type="email" id="signup-email" placeholder="ایمیل">
+    <input type="password" id="signup-password" placeholder="رمز عبور">
     <button type="submit">ثبت‌نام</button>
   </form>
 
   <h2>ورود</h2>
   <form id="login-form">
-    <input type="email" id="login-email" placeholder="ایمیل" required />
-    <input type="password" id="login-password" placeholder="رمز عبور" required />
+    <input type="email" id="login-email" placeholder="ایمیل">
+    <input type="password" id="login-password" placeholder="رمز عبور">
     <button type="submit">ورود</button>
   </form>
 
-  <div id="video-section" style="display:none;">
+  <div id="video-section" style="display:none">
     <p>اعتبار شما: <span id="credit-display">--</span></p>
-    <button id="generate-btn">🎬 تولید ویدیو</button>
+    <input type="file" id="image-input">
+    <input type="text" id="prompt-input" placeholder="پرامپت">
+    <input type="number" id="duration-input" placeholder="مدت (ثانیه)" value="5">
+    <button id="generate-btn">تولید ویدیو</button>
     <button onclick="firebase.auth().signOut()">خروج</button>
+    <video id="video-output" controls style="display:none;max-width:100%;margin-top:20px"></video>
   </div>
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPRo2OkGNqEaIR1KB5exJhM3_e5OBXoF8",
+      authDomain: "videogenerator-274eb.firebaseapp.com",
+      projectId: "videogenerator-274eb",
+      storageBucket: "videogenerator-274eb.firebasestorage.app",
+      messagingSenderId: "841757070475",
+      appId: "1:841757070475:web:c48b0aa3f019e3fc08b08e",
+      measurementId: "G-8QGPD13RJH"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  <!-- فایل اصلی برنامه -->
-  <script src="app.js"></script>
+    const signupForm = document.getElementById("signup-form");
+    const loginForm = document.getElementById("login-form");
+    const creditDisplay = document.getElementById("credit-display");
+    const videoSection = document.getElementById("video-section");
+    const generateBtn = document.getElementById("generate-btn");
+    const videoOutput = document.getElementById("video-output");
+
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      try {
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        await db.collection("users").doc(userCredential.user.uid).set({ email, credit: 1000 });
+        alert("ثبت‌نام با موفقیت انجام شد!");
+      } catch (err) {
+        alert("❌ خطا در ثبت‌نام: " + err.message);
+      }
+    });
+
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      try {
+        await auth.signInWithEmailAndPassword(email, password);
+      } catch (err) {
+        alert("❌ خطا در ورود: " + err.message);
+      }
+    });
+
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        const doc = await db.collection("users").doc(user.uid).get();
+        const credit = doc.exists ? doc.data().credit : 0;
+        creditDisplay.textContent = credit;
+        videoSection.style.display = "block";
+        signupForm.style.display = "none";
+        loginForm.style.display = "none";
+        generateBtn.disabled = credit < 50;
+      } else {
+        videoSection.style.display = "none";
+        signupForm.style.display = "block";
+        loginForm.style.display = "block";
+        creditDisplay.textContent = "--";
+      }
+    });
+
+    generateBtn.addEventListener("click", async () => {
+      const user = auth.currentUser;
+      const ref = db.collection("users").doc(user.uid);
+      const doc = await ref.get();
+      let credit = doc.data().credit;
+      if (credit < 50) return alert("❌ اعتبار کافی نیست!");
+
+      const imageFile = document.getElementById("image-input").files[0];
+      const prompt = document.getElementById("prompt-input").value;
+      const duration = parseInt(document.getElementById("duration-input").value);
+
+      const formData = new FormData();
+      formData.append("image", imageFile);
+
+      // آپلود عکس به imgbb برای گرفتن URL معتبر
+      const res1 = await fetch("https://api.imgbb.com/1/upload?key=2cd4e36ef6ae7cfa1a5d4b5b2e9cfba3", {
+        method: "POST",
+        body: formData
+      });
+      const imgbb = await res1.json();
+      const imageUrl = imgbb.data.url;
+
+      const replicateResponse = await fetch("https://api.replicate.com/v1/predictions", {
+        method: "POST",
+        headers: {
+          "Authorization": "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          version: "f0fbb3d4be631f6b77f1579f2b7e3b82f4973c8ad894c8d9435d2f13a4437f19",
+          input: {
+            prompt,
+            start_image: imageUrl,
+            cfg_scale: 0.5,
+            duration,
+            aspect_ratio: "16:9"
+          }
+        })
+      });
+
+      const prediction = await replicateResponse.json();
+      const getUrl = prediction.urls.get;
+
+      // بررسی تا آماده شدن
+      let outputUrl = "";
+      for (let i = 0; i < 40; i++) {
+        const checkRes = await fetch(getUrl, {
+          headers: {
+            "Authorization": "Token r8_KZVGeB9egn8UK5r2FhgXRqVvYGfE0KP3ZtxdO"
+          }
+        });
+        const checkData = await checkRes.json();
+        if (checkData.status === "succeeded") {
+          outputUrl = checkData.output;
+          break;
+        }
+        await new Promise(r => setTimeout(r, 5000));
+      }
+
+      if (outputUrl) {
+        await ref.update({ credit: credit - 50 });
+        creditDisplay.textContent = credit - 50;
+        videoOutput.src = outputUrl;
+        videoOutput.style.display = "block";
+      } else {
+        alert("⏱ هنوز آماده نشده یا خطا رخ داده!");
+      }
+    });
+  </script>
 </body>
 </html>
